@@ -1,3 +1,5 @@
+import UIKit
+import MapboxCoreNavigation
 import MapboxDirections
 import UIKit
 
@@ -18,7 +20,7 @@ open class InstructionLabel: StylableLabel, InstructionPresenterDataSource {
     // e.g. a UITableView or a UICollectionView where the frame is unknown before the cells are
     // displayed. The bounds of `InstructionLabel` will be used if this view is unset.
     weak var viewForAvailableBoundsCalculation: UIView?
-    var shieldHeight: CGFloat = 30
+    var shieldHeight: CGFloat = 16
     var imageDownloadCompletion: (() -> Void)?
     weak var instructionDelegate: VisualInstructionDelegate?
     var customTraitCollection: UITraitCollection?
@@ -32,35 +34,33 @@ open class InstructionLabel: StylableLabel, InstructionPresenterDataSource {
     }
 
     private func updateLabelAttributedText() {
-        guard let instruction else {
+        guard let instruction = instruction else {
             text = nil
             return
         }
 
-        let update: InstructionPresenter.ShieldDownloadCompletion = { [weak self] attributedText in
-            guard let self else { return }
+        let update: InstructionPresenter.ShieldDownloadCompletion = { [weak self] (attributedText) in
+            guard let self = self else { return }
             self.attributedText = attributedText
-            imageDownloadCompletion?()
+            self.imageDownloadCompletion?()
         }
 
-        let presenter = InstructionPresenter(
-            instruction,
-            dataSource: self,
-            spriteRepository: spriteRepository,
-            traitCollection: customTraitCollection ?? traitCollection,
-            downloadCompletion: update,
-            isHighlighted: showHighlightedTextColor
-        )
+        let presenter = InstructionPresenter(instruction,
+                                             dataSource: self,
+                                             spriteRepository: spriteRepository,
+                                             traitCollection: customTraitCollection ?? traitCollection,
+                                             downloadCompletion: update,
+                                             isHighlighted: showHighlightedTextColor)
         let attributed = presenter.attributedText()
         attributedText = instructionDelegate?.label(self, willPresent: instruction, as: attributed) ?? attributed
     }
 
-    override open func update() {
+    open override func update() {
         updateLabelAttributedText()
         super.update()
     }
 
-    override open func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+    open override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
         super.traitCollectionDidChange(previousTraitCollection)
         update()
     }
@@ -89,8 +89,12 @@ open class InstructionLabel: StylableLabel, InstructionPresenterDataSource {
 
 @_documentation(visibility: internal)
 @objc(MBPrimaryLabel)
-open class PrimaryLabel: InstructionLabel {}
+open class PrimaryLabel: InstructionLabel {
+
+}
 
 @_documentation(visibility: internal)
 @objc(MBSecondaryLabel)
-open class SecondaryLabel: InstructionLabel {}
+open class SecondaryLabel: InstructionLabel {
+
+}
